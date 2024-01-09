@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: craig
+      changes:
+        - createTable:
+            tableName: employee
+            columns:
+              - column:
+                  name: firstName
+                  type: varchar(100)
+              - column:
+                  name: lastName
+                  type: varchar(100)
