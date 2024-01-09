@@ -3,16 +3,15 @@ package com.example.testcontainers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.boot.web.client.RootUriTemplateHandler;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -32,6 +31,16 @@ class TestContainerPlaygroundApplicationTests {
     @Container
     static WireMockContainer wireMockContainer = new WireMockContainer("wiremock/wiremock:2.35.0")
             .withMappingFromResource("example", "wiremock/stub.json");
+
+    @TestConfiguration
+    static class TestContainerPlaygroundApplicationTestsConfig {
+
+        @Bean
+        public RestTemplateCustomizer restTemplateCustomizer() {
+            return restTemplate -> RootUriTemplateHandler.addTo(restTemplate, String.format("http://localhost:%d", wireMockContainer.getPort()));
+        }
+
+    }
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -58,12 +67,10 @@ class TestContainerPlaygroundApplicationTests {
 
     @Test
     void wiremockStubReturnsExpectedResponse() {
-        RestTemplate restTemplate = new RestTemplateBuilder().rootUri("http://localhost:" + wireMockContainer.getPort())
-                .build();
+        ResponseEntity<String> response = restTemplate.getForEntity("/remote-service", String.class);
 
-        String responseBody = restTemplate.getForObject("/some/thing", String.class);
-
-        assertThat(responseBody).isEqualTo("Hello, world!");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo("Hello, world!");
     }
 
     private void postEmployee(String requestJson) {
