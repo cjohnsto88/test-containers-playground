@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -26,7 +26,7 @@ class TestContainerPlaygroundApplicationTests {
 
     @Container
     @ServiceConnection
-    static MariaDBContainer<?> mariaDBContainer = new MariaDBContainer<>(DockerImageName.parse("mariadb:latest"));
+    static MSSQLServerContainer<?> msSqlContainer = new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/mssql/server:2017-CU12")).acceptLicense();
 
     @Container
     static WireMockContainer wireMockContainer = new WireMockContainer("wiremock/wiremock:2.35.0")
